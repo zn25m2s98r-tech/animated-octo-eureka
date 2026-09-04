@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Analysis Workshop</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
+  :root {
+    --red: #BE0000;
+    --red-light: #fde8e8;
+    --cream: #FFF8F0;
+    --dark: #1A1A2E;
+    --text: #2D2D2D;
+    --muted: #666666;
+    --light-gray: #F5F5F5;
+    --border: #E0E0E0;
+    --green: #2D8B46;
+    --green-light: #e8f5e9;
+    --blue: #3D5A80;
+    --blue-light: #e8eef5;
+    --purple: #5C4B8A;
+    --purple-light: #f0ecf5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Calibri', 'Segoe UI', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--dark);
+    padding: 1.5rem 2rem;
+    border-left: 6px solid var(--red);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .header h1 {
+    font-family: 'EB Garamond', Georgia, serif;
+    color: var(--cream);
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .header .subtitle {
+    color: var(--red);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1rem;
+  }
+  .header .course-label {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  /* Progress bar */
+  .progress-container {
+    background: var(--dark);
+    padding: 0 2rem 1rem;
+  }
+  .progress-bar {
+    background: #333;
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: var(--red);
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  .progress-label {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 0.4rem;
+    text-align: right;
+  }
+
+  /* Main container */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* Step panels */
+  .step { display: none; }
+  .step.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Section headers */
+  .step-header {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+  .step-subheader {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Cards */
+  .card {
+    background: #fff;
+    border-radius: 6px;
+    border-left: 4px solid var(--red);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .card.green { border-left-color: var(--green); }
+  .card.blue { border-left-color: var(--blue); }
+  .card.purple { border-left-color: var(--purple); }
+  .card.neutral { border-left-color: var(--border); }
+
+  .card-label {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 700;
+    color: var(--red);
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+  }
+  .card.green .card-label { color: var(--green); }
+  .card.blue .card-label { color: var(--blue); }
+  .card.purple .card-label { color: var(--purple); }
+
+  .card p, .card li {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  .card ul { padding-left: 1.2rem; }
+  .card li { margin-bottom: 0.25rem; }
+
+  /* Coding scheme table */
+  .scheme-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.88rem;
+  }
+  .scheme-table th {
+    background: var(--red);
+    color: #fff;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+  }
+  .scheme-table td {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .scheme-table tr:nth-child(even) td { background: var(--light-gray); }
+  .scheme-table code {
+    background: var(--red-light);
+    color: var(--red);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  /* Headline coding area */
+  .headline-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+  }
+  .headline-card.coded {
+    border-color: var(--green);
+    background: #fcfff9;
+  }
+  .headline-num {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+  .headline-text {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark);
+    line-height: 1.4;
+    margin-bottom: 0.4rem;
+  }
+  .headline-source {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  /* Coding selectors */
+  .code-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .code-row label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 90px;
+  }
+  .code-options {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .code-btn {
+    padding: 0.3rem 0.7rem;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    background: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+    font-family: 'Calibri', sans-serif;
+  }
+  .code-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+  .code-btn.selected {
+    background: var(--red);
+    color: #fff;
+    border-color: var(--red);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.5rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.95rem;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--red);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #a00000; }
+  .btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--red);
+    border: 1.5px solid var(--red);
+  }
+  .btn-secondary:hover { background: var(--red-light); }
+
+  .btn-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr; } }
+
+  .result-card {
+    background: #fff;
+    border-radius: 6px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .result-card h3 {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    color: var(--text);
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.82rem;
+  }
+  .bar-label { min-width: 100px; color: var(--text); }
+  .bar-track {
+    flex: 1;
+    background: var(--light-gray);
+    border-radius: 3px;
+    height: 18px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+    min-width: 2px;
+  }
+  .bar-fill.red { background: var(--red); }
+  .bar-fill.blue { background: var(--blue); }
+  .bar-fill.green { background: var(--green); }
+  .bar-fill.purple { background: var(--purple); }
+  .bar-fill.gray { background: var(--muted); }
+  .bar-pct { min-width: 36px; text-align: right; font-weight: 600; color: var(--muted); }
+
+  /* Callout boxes */
+  .callout {
+    background: var(--red-light);
+    border-left: 4px solid var(--red);
+    padding: 1rem 1.25rem;
+    border-radius: 0 5px 5px 0;
+    margin: 1.25rem 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .callout.green { background: var(--green-light); border-left-color: var(--green); }
+  .callout.blue { background: var(--blue-light); border-left-color: var(--blue); }
+  .callout strong { color: var(--red); }
+  .callout.green strong { color: var(--green); }
+  .callout.blue strong { color: var(--blue); }
+
+  /* Intercoder section */
+  .agreement-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .agreement-badge.high { background: var(--green-light); color: var(--green); }
+  .agreement-badge.medium { background: #fff3e0; color: #e65100; }
+  .agreement-badge.low { background: var(--red-light); color: var(--red); }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 0.75rem 0;
+  }
+  .comparison-table th {
+    background: var(--dark);
+    color: #fff;
+    padding: 0.5rem 0.6rem;
+    text-align: left;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+  }
+  .comparison-table td {
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .comparison-table tr:nth-child(even) td { background: var(--light-gray); }
+  .match { color: var(--green); font-weight: 600; }
+  .mismatch { color: var(--red); font-weight: 600; }
+
+  /* Reset button */
+  .reset-link {
+    color: var(--muted);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.85rem;
+    border: none;
+    background: none;
+    font-family: inherit;
+  }
+  .reset-link:hover { color: var(--red); }
+
+  /* Instructor note */
+  .instructor-note {
+    background: #fff;
+    border: 1.5px dashed var(--muted);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .instructor-note strong { color: var(--text); }
+
+  /* Completed count */
+  .completed-count {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .completed-count span {
+    color: var(--green);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="course-label">RESEARCH METHODS</div>
+    <h1>Content Analysis Workshop</h1>
+    <div class="subtitle">Turning Headlines Into Data</div>
+  </div>
+</div>
+<div class="progress-container">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:14%"></div></div>
+  <div class="progress-label" id="progressLabel">Step 1 of 7</div>
+</div>
+
+<div class="container">
+
+  <!-- ==================== STEP 1: INTRO ==================== -->
+  <div class="step active" id="step1">
+    <h2 class="step-header">What You're About to Do</h2>
+    <p class="step-subheader">A crash course in coding content — the quantitative kind</p>
+
+    <div class="card">
+      <p>In this activity, you'll work through the entire content analysis process, from learning a coding scheme to applying it to real-ish headlines and comparing your results.</p>
+    </div>
+
+    <div class="card blue">
+      <div class="card-label" style="color:var(--blue)">The Scenario</div>
+      <p>A research team wants to study <strong>how local news outlets frame stories about crime</strong>. They've sampled 8 recent headlines and opening sentences. Your job is to be a coder — to read each item and classify it using a standardized coding scheme.</p>
+    </div>
+
+    <div class="card green">
+      <div class="card-label" style="color:var(--green)">The Point</div>
+      <p>Content analysis only works if different coders apply the scheme consistently. After you code the headlines, you'll compare your results to a "second coder" to see how well you agree. That comparison is called <strong>intercoder reliability</strong> — and it's the thing that separates systematic research from "I read some articles and had opinions."</p>
+    </div>
+
+    <div class="btn-row">
+      <div></div>
+      <button class="btn btn-primary" onclick="goStep(2)">Let's Get Started →</button>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 2: CODING SCHEME ==================== -->
+  <div class="step" id="step2">
+    <h2 class="step-header">The Coding Scheme</h2>
+    <p class="step-subheader">Read this carefully — you'll be applying it in a moment</p>
+
+    <p style="font-size:0.92rem;margin-bottom:1rem;line-height:1.5;">For each headline, you'll code <strong>four variables</strong>. Every variable has predefined categories. Your job is to pick the one that best fits. There are no trick questions — but some will require judgment, which is exactly the point.</p>
+
+    <table class="scheme-table">
+      <thead>
+        <tr><th>Variable</th><th>Categories</th><th>How to Decide</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Framing</strong></td>
+          <td><code>Law Enforcement</code> <code>Community/Victim</code> <code>Neutral/Factual</code></td>
+          <td>Whose perspective dominates? Who's the main actor — police/courts, or community members/victims? If neither, it's neutral.</td>
+        </tr>
+        <tr>
+          <td><strong>Tone</strong></td>
+          <td><code>Alarming</code> <code>Sympathetic</code> <code>Matter-of-Fact</code></td>
+          <td>Does the language create urgency/fear, evoke empathy, or simply report facts?</td>
+        </tr>
+        <tr>
+          <td><strong>Crime Type Focus</strong></td>
+          <td><code>Violent</code> <code>Property</code> <code>Drug/Vice</code> <code>Other/General</code></td>
+          <td>What category of crime is the story primarily about?</td>
+        </tr>
+        <tr>
+          <td><strong>Mentions Race/Ethnicity</strong></td>
+          <td><code>Yes</code> <code>No</code></td>
+          <td>Does the text explicitly reference the race or ethnicity of anyone involved?</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Important:</strong> Code only what's in the text. Don't infer, don't read between the lines, and don't bring in outside knowledge. If the headline doesn't mention race, code it as "No" — even if you know the real case involved a racial dimension. You're coding the <em>content</em>, not the <em>reality</em>.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">I've Read the Scheme — Start Coding →</button>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 3: CODING ==================== -->
+  <div class="step" id="step3">
+    <h2 class="step-header">Code the Headlines</h2>
+    <p class="step-subheader">Apply the coding scheme to each item below</p>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div class="completed-count">Coded: <span id="codedCount">0</span> / 8</div>
+      <button class="reset-link" onclick="resetCoding()">Reset all codes</button>
+    </div>
+
+    <div id="headlinesContainer"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Back to Scheme</button>
+      <button class="btn btn-primary" id="viewResultsBtn" onclick="goStep(4)" disabled>View My Results →</button>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 4: YOUR RESULTS ==================== -->
+  <div class="step" id="step4">
+    <h2 class="step-header">Your Coded Data</h2>
+    <p class="step-subheader">Here's what your data looks like when aggregated</p>
+
+    <p style="font-size:0.92rem;margin-bottom:1rem;line-height:1.5;">You just turned 8 pieces of qualitative content — news headlines — into quantitative data. Below are your frequency distributions for each variable. <strong>This is literally what content analysis produces.</strong></p>
+
+    <div class="results-grid" id="resultsGrid"></div>
+
+    <div class="callout green">
+      <strong>Notice:</strong> You now have numbers. You could calculate percentages, compare across outlets, test for differences between time periods. That's the power of content analysis — it turns text into data that can be analyzed statistically.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Back to Coding</button>
+      <button class="btn btn-primary" onclick="goStep(5)">Now Let's Talk Reliability →</button>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 5: INTERCODER RELIABILITY ==================== -->
+  <div class="step" id="step5">
+    <h2 class="step-header">Intercoder Reliability</h2>
+    <p class="step-subheader">The moment of truth — did you and Coder B agree?</p>
+
+    <div class="card blue">
+      <div class="card-label" style="color:var(--blue)">Why This Matters</div>
+      <p>If two people can't apply the same coding scheme and get the same results, your data is meaningless. Intercoder reliability is the check that makes content analysis <em>research</em> instead of <em>opinion</em>.</p>
+    </div>
+
+    <p style="font-size:0.92rem;margin:1rem 0;line-height:1.5;">A second coder ("Coder B") independently coded the same 8 headlines. Here's how your codes compare:</p>
+
+    <div id="comparisonContainer"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(4)">← Back to Results</button>
+      <button class="btn btn-primary" onclick="goStep(6)">See Overall Agreement →</button>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 6: AGREEMENT STATS ==================== -->
+  <div class="step" id="step6">
+    <h2 class="step-header">How Did You Do?</h2>
+    <p class="step-subheader">Your agreement rates with Coder B, by variable</p>
+
+    <div id="agreementContainer"></div>
+
+    <div class="callout">
+      <strong>In real research:</strong> Researchers typically aim for at least 80% agreement (or a Cohen's kappa of 0.80+) before they trust the data. When agreement is low, it usually means the coding scheme needs to be clearer — not that the coders are bad. Ambiguity in the scheme is the #1 cause of disagreement.
+    </div>
+
+    <div id="disagreementDiscussion"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(5)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(7)">Wrap Up →</button>
+    </div>
+  </div>
+
+  <!-- ==================== STEP 7: TAKEAWAYS ==================== -->
+  <div class="step" id="step7">
+    <h2 class="step-header">What You Just Did</h2>
+    <p class="step-subheader">And why it matters for your research</p>
+
+    <div class="card">
+      <div class="card-label">1. You applied a coding scheme to real content</div>
+      <p>You took unstructured text and classified it into predetermined categories. That's the core skill of content analysis.</p>
+    </div>
+    <div class="card green">
+      <div class="card-label" style="color:var(--green)">2. You produced quantitative data</div>
+      <p>Your codes became frequencies that can be analyzed statistically — percentages, comparisons, tests of significance. Qualitative content became quantitative data.</p>
+    </div>
+    <div class="card blue">
+      <div class="card-label" style="color:var(--blue)">3. You experienced intercoder reliability firsthand</div>
+      <p>Where you and Coder B disagreed, the coding scheme was probably ambiguous. In real research, you'd revise the scheme and retrain until agreement is consistently high.</p>
+    </div>
+    <div class="card purple">
+      <div class="card-label" style="color:var(--purple)">4. You saw the trade-off</div>
+      <p>Some of these headlines were genuinely hard to code. The nuance you felt — the "it depends" instinct — is exactly what gets lost when you turn text into numbers. That's the price of systematicity. Whether it's worth it depends on your research question.</p>
+    </div>
+
+    <div class="callout blue">
+      <strong>For your final project:</strong> If you're proposing content analysis as your method, your methods section needs to describe your coding scheme in this level of detail — what variables you're coding, what the categories are, and how you'd establish intercoder reliability. "I would analyze news articles" is not a plan. <em>This</em> is a plan.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goStep(6)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(1)">↺ Start Over</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Headlines Data ──
+const headlines = [
+  {
+    id: 1,
+    text: "Police Arrest Three Suspects in String of Armed Robberies Across Westside",
+    source: "Metro Daily News",
+    coderB: { framing: "Law Enforcement", tone: "Matter-of-Fact", crime: "Violent", race: "No" }
+  },
+  {
+    id: 2,
+    text: "Grieving Family Demands Answers After Teen Fatally Shot During Traffic Stop",
+    source: "City Herald",
+    coderB: { framing: "Community/Victim", tone: "Sympathetic", crime: "Violent", race: "No" }
+  },
+  {
+    id: 3,
+    text: "Violent Crime Surges 23% Downtown; Residents Say They No Longer Feel Safe",
+    source: "Channel 7 News",
+    coderB: { framing: "Community/Victim", tone: "Alarming", crime: "Violent", race: "No" }
+  },
+  {
+    id: 4,
+    text: "City Council Approves $2.1 Million for New Community Policing Initiative",
+    source: "Metro Daily News",
+    coderB: { framing: "Neutral/Factual", tone: "Matter-of-Fact", crime: "Other/General", race: "No" }
+  },
+  {
+    id: 5,
+    text: "Drug Bust Nets 47 Arrests in Largest Sting Operation This Year, DA Says",
+    source: "Channel 7 News",
+    coderB: { framing: "Law Enforcement", tone: "Alarming", crime: "Drug/Vice", race: "No" }
+  },
+  {
+    id: 6,
+    text: "Latino Business Owners on East 4th Street Say Break-Ins Are Destroying Their Livelihoods",
+    source: "City Herald",
+    coderB: { framing: "Community/Victim", tone: "Sympathetic", crime: "Property", race: "Yes" }
+  },
+  {
+    id: 7,
+    text: "Sheriff's Office Reports 12% Drop in Property Crime Following Neighborhood Watch Expansion",
+    source: "Metro Daily News",
+    coderB: { framing: "Law Enforcement", tone: "Matter-of-Fact", crime: "Property", race: "No" }
+  },
+  {
+    id: 8,
+    text: "How One Mother Turned Her Son's Overdose Death Into a Crusade for Treatment Over Jail",
+    source: "City Herald",
+    coderB: { framing: "Community/Victim", tone: "Sympathetic", crime: "Drug/Vice", race: "No" }
+  }
+];
+
+const variables = {
+  framing: { label: "Framing", options: ["Law Enforcement", "Community/Victim", "Neutral/Factual"], colors: ["red","blue","gray"] },
+  tone: { label: "Tone", options: ["Alarming", "Sympathetic", "Matter-of-Fact"], colors: ["red","green","gray"] },
+  crime: { label: "Crime Type", options: ["Violent", "Property", "Drug/Vice", "Other/General"], colors: ["red","blue","purple","gray"] },
+  race: { label: "Mentions Race", options: ["Yes", "No"], colors: ["red","gray"] }
+};
+
+// ── State ──
+let userCodes = {};
+headlines.forEach(h => { userCodes[h.id] = { framing: null, tone: null, crime: null, race: null }; });
+
+// ── Build Headlines UI ──
+function buildHeadlines() {
+  const container = document.getElementById("headlinesContainer");
+  container.innerHTML = "";
+  headlines.forEach(h => {
+    const div = document.createElement("div");
+    div.className = "headline-card";
+    div.id = "hcard-" + h.id;
+    div.innerHTML = `
+      <div class="headline-num">Headline ${h.id} of 8</div>
+      <div class="headline-text">${h.text}</div>
+      <div class="headline-source">— ${h.source}</div>
+      ${Object.keys(variables).map(v => `
+        <div class="code-row">
+          <label>${variables[v].label}:</label>
+          <div class="code-options">
+            ${variables[v].options.map(opt => `
+              <button class="code-btn" data-headline="${h.id}" data-var="${v}" data-val="${opt}"
+                      onclick="setCode(${h.id},'${v}','${opt}',this)">${opt}</button>
+            `).join("")}
+          </div>
+        </div>
+      `).join("")}
+    `;
+    container.appendChild(div);
+  });
+}
+
+function setCode(hid, varName, value, btn) {
+  userCodes[hid][varName] = value;
+  // Update button styles
+  const siblings = btn.parentElement.querySelectorAll(".code-btn");
+  siblings.forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  updateCodedCount();
+}
+
+function updateCodedCount() {
+  let coded = 0;
+  headlines.forEach(h => {
+    const c = userCodes[h.id];
+    const complete = c.framing && c.tone && c.crime && c.race;
+    const card = document.getElementById("hcard-" + h.id);
+    if (complete) { coded++; card.classList.add("coded"); }
+    else { card.classList.remove("coded"); }
+  });
+  document.getElementById("codedCount").textContent = coded;
+  document.getElementById("viewResultsBtn").disabled = coded < 8;
+}
+
+function resetCoding() {
+  headlines.forEach(h => { userCodes[h.id] = { framing: null, tone: null, crime: null, race: null }; });
+  document.querySelectorAll(".code-btn").forEach(b => b.classList.remove("selected"));
+  document.querySelectorAll(".headline-card").forEach(c => c.classList.remove("coded"));
+  updateCodedCount();
+}
+
+// ── Results ──
+function buildResults() {
+  const grid = document.getElementById("resultsGrid");
+  grid.innerHTML = "";
+  Object.keys(variables).forEach(v => {
+    const counts = {};
+    variables[v].options.forEach(o => counts[o] = 0);
+    headlines.forEach(h => { if (userCodes[h.id][v]) counts[userCodes[h.id][v]]++; });
+    const total = headlines.length;
+    const card = document.createElement("div");
+    card.className = "result-card";
+    card.innerHTML = `<h3>${variables[v].label}</h3>` +
+      variables[v].options.map((o, i) => {
+        const pct = Math.round(counts[o] / total * 100);
+        return `<div class="bar-row">
+          <span class="bar-label">${o}</span>
+          <div class="bar-track"><div class="bar-fill ${variables[v].colors[i]}" style="width:${pct}%"></div></div>
+          <span class="bar-pct">${counts[o]} (${pct}%)</span>
+        </div>`;
+      }).join("");
+    grid.appendChild(card);
+  });
+}
+
+// ── Comparison ──
+function buildComparison() {
+  const container = document.getElementById("comparisonContainer");
+  let html = `<table class="comparison-table">
+    <thead><tr><th>#</th><th>Variable</th><th>Your Code</th><th>Coder B</th><th>Match?</th></tr></thead><tbody>`;
+  headlines.forEach(h => {
+    Object.keys(variables).forEach(v => {
+      const yours = userCodes[h.id][v] || "—";
+      const theirs = h.coderB[v];
+      const isMatch = yours === theirs;
+      html += `<tr>
+        <td>${h.id}</td>
+        <td>${variables[v].label}</td>
+        <td>${yours}</td>
+        <td>${theirs}</td>
+        <td class="${isMatch ? "match" : "mismatch"}">${isMatch ? "✓" : "✗"}</td>
+      </tr>`;
+    });
+  });
+  html += "</tbody></table>";
+  container.innerHTML = html;
+}
+
+// ── Agreement ──
+function buildAgreement() {
+  const container = document.getElementById("agreementContainer");
+  let html = "";
+  const varAgreements = {};
+  let totalCodes = 0, totalMatches = 0;
+
+  Object.keys(variables).forEach(v => {
+    let matches = 0;
+    headlines.forEach(h => { if (userCodes[h.id][v] === h.coderB[v]) matches++; });
+    const pct = Math.round(matches / headlines.length * 100);
+    varAgreements[v] = { matches, pct };
+    totalCodes += headlines.length;
+    totalMatches += matches;
+
+    let badge = "low", badgeText = "Needs Work";
+    if (pct >= 80) { badge = "high"; badgeText = "Strong"; }
+    else if (pct >= 60) { badge = "medium"; badgeText = "Moderate"; }
+
+    html += `<div class="card neutral" style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <strong>${variables[v].label}</strong><br>
+        <span style="font-size:0.85rem;color:var(--muted)">${matches} of ${headlines.length} matches (${pct}%)</span>
+      </div>
+      <span class="agreement-badge ${badge}">${badgeText}</span>
+    </div>`;
+  });
+
+  const overallPct = Math.round(totalMatches / totalCodes * 100);
+  let overallBadge = "low", overallText = "Needs Work";
+  if (overallPct >= 80) { overallBadge = "high"; overallText = "Strong"; }
+  else if (overallPct >= 60) { overallBadge = "medium"; overallText = "Moderate"; }
+
+  html = `<div class="card" style="border-left-color:var(--dark);margin-bottom:1.25rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div class="card-label" style="color:var(--dark);font-size:1.1rem;">Overall Agreement</div>
+        <span style="font-size:0.9rem;color:var(--muted)">${totalMatches} of ${totalCodes} total codes matched (${overallPct}%)</span>
+      </div>
+      <span class="agreement-badge ${overallBadge}" style="font-size:1rem;padding:0.4rem 1rem;">${overallPct}% — ${overallText}</span>
+    </div>
+  </div>` + html;
+
+  container.innerHTML = html;
+
+  // Build disagreement discussion
+  const disc = document.getElementById("disagreementDiscussion");
+  const disagreements = [];
+  headlines.forEach(h => {
+    Object.keys(variables).forEach(v => {
+      if (userCodes[h.id][v] !== h.coderB[v]) {
+        disagreements.push({ headline: h.id, variable: variables[v].label, yours: userCodes[h.id][v], theirs: h.coderB[v], text: h.text });
+      }
+    });
+  });
+
+  if (disagreements.length === 0) {
+    disc.innerHTML = `<div class="callout green"><strong>Perfect agreement!</strong> You and Coder B coded every headline identically. That's either impressive reliability or suspicious collusion. In real research, some disagreement is normal — it's how you find weaknesses in your coding scheme.</div>`;
+  } else {
+    let items = disagreements.slice(0, 4).map(d =>
+      `<div class="card neutral" style="font-size:0.88rem;">
+        <strong>Headline ${d.headline} — ${d.variable}</strong><br>
+        <span style="color:var(--muted);font-style:italic;font-size:0.82rem;">"${d.text.substring(0, 80)}..."</span><br>
+        You coded: <strong>${d.yours}</strong> &nbsp;|&nbsp; Coder B coded: <strong>${d.theirs}</strong><br>
+        <span style="color:var(--muted);font-size:0.82rem;">→ What made this ambiguous? How could the coding scheme be revised to reduce this disagreement?</span>
+      </div>`
+    ).join("");
+    disc.innerHTML = `<h3 style="font-family:'EB Garamond',Georgia,serif;font-size:1.1rem;margin:1.25rem 0 0.6rem;">Discussion: Where You Disagreed</h3>
+      <p style="font-size:0.9rem;margin-bottom:0.75rem;color:var(--muted);">These are the items where your code differed from Coder B's. For each one, think about what made it ambiguous:</p>${items}`;
+  }
+}
+
+// ── Navigation ──
+function goStep(n) {
+  document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+  document.getElementById("step" + n).classList.add("active");
+  document.getElementById("progressFill").style.width = Math.round(n / 7 * 100) + "%";
+  document.getElementById("progressLabel").textContent = `Step ${n} of 7`;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  if (n === 4) buildResults();
+  if (n === 5) buildComparison();
+  if (n === 6) buildAgreement();
+}
+
+// ── Init ──
+buildHeadlines();
+</script>
+</body>
+</html>
